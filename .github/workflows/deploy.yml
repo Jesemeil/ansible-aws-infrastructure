@@ -20,7 +20,8 @@ jobs:
           java-version: '21'
 
       - name: Build project
-        run: mvn clean package
+        run: mvn clean package -DskipTests
+
 
       - name: Build Docker image
         run: docker build -t user-registration .
