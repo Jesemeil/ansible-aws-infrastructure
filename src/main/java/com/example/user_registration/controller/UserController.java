@@ -26,4 +26,12 @@ public class UserController {
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);
     }
+
+
+    @GetMapping("/")
+    public String hello() {
+        return "Hello World!";
+    }
+
+
 }
