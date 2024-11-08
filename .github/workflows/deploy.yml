@@ -22,18 +22,20 @@ jobs:
       - name: Build project
         run: mvn clean package -DskipTests
 
+      - name: List files in target directory
+        run: ls -R target
 
       - name: Build Docker image
         run: docker build -t user-registration .
 
-      - name: Push Docker image to DockerHub
+      - name: Push Docker image to Docker Hub
         env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
         run: |
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          docker tag user-registration ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
+          echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+          docker tag user-registration $DOCKER_HUB_USERNAME/user-registration:latest
+          docker push $DOCKER_HUB_USERNAME/user-registration:latest
 
   deploy:
     needs: build
@@ -47,8 +49,84 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
-          scp -o StrictHostKeyChecking=no -i ec2_key.pem target/*.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem target/user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
           ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
             sudo pkill -f "app.jar"
             nohup java -jar /home/ubuntu/user-registration.jar &
           ENDSSH
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#name: CI/CD Pipeline for User Registration Project
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Set up JDK
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'temurin'
+#          java-version: '21'
+#
+#      - name: Build project
+#        run: mvn clean package -DskipTests
+#
+#
+#      - name: Build Docker image
+#        run: docker build -t user-registration .
+#
+#      - name: Push Docker image to DockerHub
+#        env:
+#          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+#          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+#        run: |
+#          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#          docker tag user-registration ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
+#          docker push ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
+#
+#  deploy:
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: SSH into EC2 and Deploy
+#        env:
+#          EC2_IP: ${{ secrets.EC2_IP }}
+#          PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+#        run: |
+#          echo "$PRIVATE_KEY" > ec2_key.pem
+#          chmod 400 ec2_key.pem
+#          scp -o StrictHostKeyChecking=no -i ec2_key.pem target/*.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
+#          ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
+#            sudo pkill -f "app.jar"
+#            nohup java -jar /home/ubuntu/user-registration.jar &
+#          ENDSSH
