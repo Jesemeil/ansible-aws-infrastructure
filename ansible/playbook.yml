@@ -1,0 +1,19 @@
+---
+- name: Deploy User Registration Application
+  hosts: servers
+  become: true
+
+  tasks:
+    - name: Stop existing Java application
+      shell: pkill -f 'java -jar' || true
+
+    - name: Copy JAR to deployment directory
+      copy:
+        src: /home/ubuntu/user-registration.jar
+        dest: /opt/user-registration/user-registration.jar
+        mode: '0755'
+
+    - name: Start Java application
+      shell: java -jar /opt/user-registration/user-registration.jar &
+      args:
+        chdir: /opt/user-registration
