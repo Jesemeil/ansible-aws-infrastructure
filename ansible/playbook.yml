@@ -7,13 +7,19 @@
     - name: Stop existing Java application
       shell: pkill -f 'java -jar' || true
 
+    - name: Create deployment directory
+      file:
+        path: /opt/user-registration
+        state: directory
+        mode: '0755'
+
     - name: Copy JAR to deployment directory
       copy:
-        src: /home/ubuntu/user-registration.jar
+        src: /home/ubuntu/user-registration.jar  # Path from GitHub Actions deployment
         dest: /opt/user-registration/user-registration.jar
         mode: '0755'
 
     - name: Start Java application
-      shell: java -jar /opt/user-registration/user-registration.jar &
+      shell: nohup java -jar user-registration.jar &
       args:
         chdir: /opt/user-registration
