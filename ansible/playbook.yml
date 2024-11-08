@@ -15,11 +15,11 @@
 
     - name: Copy JAR to deployment directory
       copy:
-        src: /home/ubuntu/user-registration.jar  # Path from GitHub Actions deployment
+        src: target/user-registration-0.0.1-SNAPSHOT.jar  
         dest: /opt/user-registration/user-registration.jar
         mode: '0755'
 
     - name: Start Java application
-      shell: nohup java -jar user-registration.jar &
+      shell: java -jar /opt/user-registration/user-registration.jar &
       args:
         chdir: /opt/user-registration
