@@ -60,9 +60,27 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
-          ls -al # List downloaded artifacts
-          scp -o StrictHostKeyChecking=no -i ec2_key.pem user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
+          
+          
           ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
+            if ! command -v java &> /dev/null; then
+              sudo apt update -y
+              sudo apt install openjdk-11-jdk -y
+            fi
+          ENDSSH
+
+          
+          ls -al
+
+          
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
+
+          
+          ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
+            # Check if the app is already running and kill it
             sudo pkill -f "user-registration.jar" || true
-            nohup java -jar /home/ubuntu/user-registration.jar &
+            nohup java -jar /home/ubuntu/user-registration.jar > /home/ubuntu/nohup.out 2>&1 &
+
+            # Optional: Check if the application is running after deployment
+            ps aux | grep "java -jar" || echo "Application not running"
           ENDSSH
