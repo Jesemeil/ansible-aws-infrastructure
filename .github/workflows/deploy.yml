@@ -62,7 +62,8 @@ jobs:
           echo "$PRIVATE_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
           
-          # Add EC2 instance's host key to known hosts to avoid "Host key verification failed"
+          # Ensure the .ssh directory exists and add EC2 instance's host key to known hosts
+          mkdir -p ~/.ssh
           ssh-keyscan -H ${EC2_IP} >> ~/.ssh/known_hosts
           
           # Ensure Java is installed on EC2 instance
@@ -88,93 +89,3 @@ jobs:
             # Optional: Check if the application is running after deployment
             ps aux | grep "java -jar" || echo "Application not running"
           ENDSSH
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#name: CI/CD Pipeline for User Registration Project
-#
-#on:
-#  push:
-#    branches:
-#      - main
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Set up JDK
-#        uses: actions/setup-java@v3
-#        with:
-#          distribution: 'temurin'
-#          java-version: '21'
-#
-#      - name: Build project
-#        run: mvn clean package -DskipTests
-#
-#      - name: List files in target directory
-#        run: ls -al target
-#
-#      - name: Upload JAR as artifact
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: user-registration-jar
-#          path: target/user-registration-0.0.1-SNAPSHOT.jar
-#
-#      - name: Build Docker image
-#        run: docker build -t user-registration .
-#
-#      - name: Push Docker image to DockerHub
-#        env:
-#          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-#          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#        run: |
-#          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-#          docker tag user-registration ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
-#          docker push ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
-#
-#  deploy:
-#    needs: build
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Download JAR artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: user-registration-jar
-#
-#      - name: SSH into EC2 and Deploy
-#        env:
-#          EC2_IP: ${{ secrets.EC2_IP }}
-#          PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
-#        run: |
-#          echo "$PRIVATE_KEY" > ec2_key.pem
-#          chmod 400 ec2_key.pem
-#          ls -al # List downloaded artifacts
-#          scp -o StrictHostKeyChecking=no -i ec2_key.pem user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
-#          ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
-#            sudo pkill -f "user-registration.jar" || true
-#            nohup java -jar /home/ubuntu/user-registration.jar &
-#          ENDSSH
