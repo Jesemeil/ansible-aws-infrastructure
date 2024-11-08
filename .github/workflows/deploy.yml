@@ -23,7 +23,7 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: List files in target directory
-        run: ls -R target
+        run: ls -al target  # List the files in the target directory
 
       - name: Build Docker image
         run: docker build -t user-registration .
@@ -49,6 +49,7 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
+          ls -al target  # Ensure the JAR file exists before attempting SCP
           scp -o StrictHostKeyChecking=no -i ec2_key.pem target/user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
           ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
             sudo pkill -f "user-registration.jar" || true
