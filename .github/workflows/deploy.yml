@@ -28,14 +28,14 @@ jobs:
       - name: Build Docker image
         run: docker build -t user-registration .
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image to DockerHub
         env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-          docker tag user-registration $DOCKER_HUB_USERNAME/user-registration:latest
-          docker push $DOCKER_HUB_USERNAME/user-registration:latest
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker tag user-registration ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/user-registration:latest
 
   deploy:
     needs: build
