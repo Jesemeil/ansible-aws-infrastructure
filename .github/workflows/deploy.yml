@@ -23,7 +23,13 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: List files in target directory
-        run: ls -al target  # List the files in the target directory
+        run: ls -al target
+
+      - name: Upload JAR as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: user-registration-jar
+          path: target/user-registration-0.0.1-SNAPSHOT.jar
 
       - name: Build Docker image
         run: docker build -t user-registration .
@@ -42,6 +48,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: user-registration-jar
+
       - name: SSH into EC2 and Deploy
         env:
           EC2_IP: ${{ secrets.EC2_IP }}
@@ -49,8 +60,8 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
-          ls -al target  # Ensure the JAR file exists before attempting SCP
-          scp -o StrictHostKeyChecking=no -i ec2_key.pem target/user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
+          ls -al # List downloaded artifacts
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem user-registration-0.0.1-SNAPSHOT.jar ubuntu@${EC2_IP}:/home/ubuntu/user-registration.jar
           ssh -i ec2_key.pem ubuntu@${EC2_IP} 'bash -s' << 'ENDSSH'
             sudo pkill -f "user-registration.jar" || true
             nohup java -jar /home/ubuntu/user-registration.jar &
